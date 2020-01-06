@@ -5,6 +5,8 @@ RUN apt-get update \
     #
     # Install pylint
     && pip --disable-pip-version-check --no-cache-dir install pylint \
+    && pip --disable-pip-version-check --no-cache-dir install autopep8 \
+    && pip --disable-pip-version-check --no-cache-dir install rope \
     #
     # Clean up
     && apt-get autoremove -y \
