@@ -1,6 +1,7 @@
 from pm4py.objects.log.importer.xes import factory as xes_importer
 from pm4py.objects.log.exporter.parquet import factory as parquet_exporter
 
+
 def convert_xes_file_to_parquet(xes_input_path: str, parquet_output_path: str):
     """Converts a XES file at the given location to a parquet file (via pandas dataframes)
 
