@@ -7,6 +7,7 @@ RUN apt-get update \
     && pip --disable-pip-version-check --no-cache-dir install pylint \
     && pip --disable-pip-version-check --no-cache-dir install autopep8 \
     && pip --disable-pip-version-check --no-cache-dir install rope \
+    && pip --disable-pip-version-check --no-cache-dir install toml \
     #
     # Clean up
     && apt-get autoremove -y \
