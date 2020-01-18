@@ -1,0 +1,19 @@
+
+name = "Name of the Metric"
+description = "Describe your metric here."
+
+# Define the possible computation variants of the metric here.
+[[variant]]
+  name = "Name of the variant"
+  description = "Describe the speciality of the variant here."
+
+  # Indicator how well the variant can represent the metric. Subjective!
+  quality = 5
+
+  [requirements]
+    # List of attributes that have to be present in the log.
+    attribute_keys = [ "attribute_key1", "attribute_key2" ]
+
+    # For each attribute in the list of keys, a set of values CAN be defined
+    # which are needed to appear in the log.
+    "attribute_key1" = [ "value1", "value2" ]

@@ -1,0 +1,12 @@
+
+name = "Workload"
+description = "Computes the workload of a resource at event occurence."
+
+[[variant]]
+  name = "Eventsum"
+  description = "Sums up the number of events associated with the resource for the last x (default 12) hours."
+
+  quality = 7
+
+  [requirements]
+    attribute_keys = []
