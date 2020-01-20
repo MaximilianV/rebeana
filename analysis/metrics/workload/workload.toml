@@ -8,5 +8,5 @@ description = "Computes the workload of a resource at event occurence."
 
   quality = 7
 
-  [requirements]
+  [variant.requirements]
     attribute_keys = []

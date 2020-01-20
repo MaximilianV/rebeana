@@ -10,7 +10,7 @@ description = "Describe your metric here."
   # Indicator how well the variant can represent the metric. Subjective!
   quality = 5
 
-  [requirements]
+  [variant.requirements]
     # List of attributes that have to be present in the log.
     attribute_keys = [ "attribute_key1", "attribute_key2" ]
 
