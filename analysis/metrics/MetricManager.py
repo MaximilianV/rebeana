@@ -46,6 +46,6 @@ class MetricManager:
         try:
             return self.metrics[metric_name]
         except KeyError:
-            print("The metric " + metric_name + " is not defined.")
+            print("The metric \"" + metric_name + "\" is not defined.")
             print("Maybe try reloading the metrics directory?")
             raise

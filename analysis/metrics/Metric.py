@@ -25,12 +25,22 @@ class Metric:
 
     @decorator.variant_exists
     def execute_variant(self, variant_name: str, log, resource, **parameters):
-        variant_module = importlib.import_module(
-            self.get_name().lower() + "." + variant_name.lower())
-        variant_compute = getattr(variant_module, 'compute')
-        return variant_compute(log, resource, **parameters)
+        try:
+            variant_module = importlib.import_module(
+                self.str_to_module(self.get_name()) + "." + self.str_to_module(variant_name))
+            variant_compute = getattr(variant_module, 'compute')
+            return variant_compute(log, resource, **parameters)
+        except ModuleNotFoundError:
+            print("The variant \"" + variant_name + "\" is configured for the metric \"" + self.get_name() + "\".\n" +
+                  "However, there is no implementation for this variant!\n" +
+                  "Expected to find a file named \"" +
+                  self.str_to_module(variant_name) + ".py\" within the metric's directory.")
+            raise
 
     @decorator.variant_exists
     def check_requirements(self, variant_name: str, log) -> bool:
         pass
 
+    @staticmethod
+    def str_to_module(name):
+        return name.lower().replace(" ", "_")
