@@ -15,11 +15,9 @@ def compute(log, resource: str, time_window: str = "12h", column_name: str = "wo
     Returns:
         DataFrame -- Log annotated with workload metric
     """
-    filtered_log = filter_log_by_resource_names(log, [resource])
 
-    filtered_log[column_name] = 0
+    log.loc[log["org:resource"].isin([resource]), column_name] = 0
+    log.loc[log["org:resource"].isin([resource]), column_name] = log.loc[log["org:resource"].isin([
+        resource]), column_name].rolling(time_window).count()
 
-    filtered_log[column_name] = filtered_log[column_name].rolling(
-        time_window).count()
-
-    return filtered_log
+    return log
