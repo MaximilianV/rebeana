@@ -4,6 +4,7 @@ import sys
 import toml
 
 from analysis.metrics.Metric import Metric
+from utils.utils import name_to_module
 
 
 class MetricManager:
@@ -27,10 +28,20 @@ class MetricManager:
             return
 
         absolute_path = os.path.join(self.plugin_path, dir)
+
         try:
             configuration = toml.load(
                 os.path.join(absolute_path, dir + ".toml"))
-            self.metrics[configuration["name"]] = Metric(configuration)
+            metric_name = configuration["name"]
+            metric = Metric(configuration)
+
+            if name_to_module(metric_name) != dir:
+                raise KeyError(metric_name)
+
+            self.metrics[metric_name] = metric
+            print("Successfully imported metric \"" +
+                  metric_name + "\" from directory \"" + dir + "\".")
+
         except FileNotFoundError:
             print("Directory \"" + dir +
                   "\" does not contain a configuration file for a metric! It will not be imported.")
@@ -38,8 +49,16 @@ class MetricManager:
             print("Configuration file for \"" + dir +
                   "\" could not be read. Please check it for syntax errors:")
             print(msg)
+        except KeyError as metric_name:
+            print("The name of the directory the metric \"" + str(metric_name) + "\" is defined in does not match.\n" +
+                  "Expected \"" + name_to_module(str(metric_name)) + "\" but was \"" + dir + "\".")
+        except ValueError:
+            print("The metric defined in \"" + dir +
+                  "\" or one of its variants is not named correctly.")
+            print("Please make sure that all names start with a letter and only \" \", \"-\" and \"_\" are used as separators.")
+            print("Additionally, please check if the directory is named like the metric.")
 
-    def available_metrics(self):
+    def get_available_metrics(self):
         return self.metrics.keys()
 
     def get_metric(self, metric_name: str) -> Metric:
