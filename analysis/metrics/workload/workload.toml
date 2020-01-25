@@ -10,3 +10,10 @@ description = "Computes the workload of a resource at event occurence."
 
   [variant.requirements]
     attribute_keys = []
+
+  [[variant.configuration]]
+    key = "time_window"
+    name = "Time window"
+    description = "Timewindow that should be used to compute the workload"
+    required = false
+    default = "12h"

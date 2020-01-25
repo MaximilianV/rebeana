@@ -17,3 +17,10 @@ description = "Describe your metric here."
     # For each attribute in the list of keys, a set of values CAN be defined
     # which are needed to appear in the log.
     "attribute_key1" = [ "value1", "value2" ]
+
+  [[variant.configuration]]
+    key = "configuration_argument"
+    name = "Configuration Argument"
+    description = "Description of the configuration argument, that can be passed to the variant's method."
+    required = false
+    default = "a default value for it, if applicable"
