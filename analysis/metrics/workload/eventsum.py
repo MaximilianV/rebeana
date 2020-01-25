@@ -1,7 +1,4 @@
-from utils.resources import filter_log_by_resource_names
-
-
-def compute(log, resource: str, time_window: str = "12h", column_name: str = "workload"):
+def compute(log, resource: str, *, column_name: str = "workload", time_window: str = "12h"):
     """Filters the log by the resource, computes the workload for it and adds a new column with the result to the log.
 
     Arguments:

@@ -28,7 +28,7 @@ class Metric:
         return variant_name in self.get_variants()
 
     @decorator.variant_exists
-    def execute_variant(self, variant_name: str, log, resource, **parameters):
+    def execute_variant(self, variant_name: str, log, resource: str, **parameters):
         try:
             variant_module = importlib.import_module(
                 name_to_module(self.get_name()) + "." + name_to_module(variant_name))
