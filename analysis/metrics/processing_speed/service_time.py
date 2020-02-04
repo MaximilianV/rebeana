@@ -1,32 +1,20 @@
-import numpy as np
+import pandas as pd
 
 
-def cp(x, log):
-    resource = x["org:resource"]
-    case = x["case:concept:name"]
-    task = x["concept:name"]
-    time = x.name
+def activity_duration(group, column_name):
+    group[column_name] = group["time:timestamp"] - group["time:timestamp"].shift(
+        periods=1).where(group["lifecycle:transition"].isin(["complete", "suspend"]), pd.NaT)
 
-    corres_start = log.loc[
-        (log.index <= time) &
-        (log["org:resource"] == resource) &
-        (log["case:concept:name"] == case) &
-        (log["concept:name"] == task) &
-        log["lifecycle:transition"].isin(["start", "resume"])
-    ].tail(1)
-
-    processing_time = time - corres_start.index[0]
-
-    return processing_time
+    return group
 
 
 def compute(log, resource: str, *, column_name: str = "proc_speed"):
-    log.loc[log["org:resource"].isin([resource]), column_name] = np.nan
+    log.loc[log["org:resource"].isin([resource]), column_name] = pd.NaT
 
-    log.loc[
-        log["org:resource"].isin([resource]) &
-        log["lifecycle:transition"].isin(["suspend", "complete"]),
-        column_name] = log.loc[log["org:resource"].isin([resource]) & log["lifecycle:transition"].isin(
-            ["suspend", "complete"])].apply(cp, axis=1, log=log)
+    log.loc[log["org:resource"].isin([resource]) & log["lifecycle:transition"].isin(
+        ["suspend", "complete", "start", "resume"])] = log.loc[log["org:resource"].isin([resource]) & log["lifecycle:transition"].isin(
+        ["suspend", "complete", "start", "resume"])].groupby(["case:concept:name", "concept:name"]).apply(activity_duration, column_name)
+
+    log[column_name].fillna(value=pd.NaT, inplace=True)
 
     return log
