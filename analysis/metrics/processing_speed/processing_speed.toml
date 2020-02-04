@@ -1,0 +1,12 @@
+
+name = "Processing Speed"
+description = "Computes the processing speed of a resource."
+
+[[variant]]
+  name = "Service Time"
+  description = ""
+
+  quality = 7
+
+  [variant.requirements]
+    attribute_keys = []
