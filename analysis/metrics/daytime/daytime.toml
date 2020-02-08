@@ -1,0 +1,22 @@
+
+name = "Daytime"
+description = "Classifies the time of day."
+
+[[variant]]
+  name = "Classification"
+  description = "Describe the speciality of the variant here."
+
+  quality = 5
+
+  [variant.requirements]
+    attribute_keys = []
+
+[[variant]]
+  name = "Hour"
+  description = "Describe the speciality of the variant here."
+
+  quality = 5
+
+  [variant.requirements]
+    # List of attributes that have to be present in the log.
+    attribute_keys = []
