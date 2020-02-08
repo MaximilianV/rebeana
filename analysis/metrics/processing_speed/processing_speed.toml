@@ -4,7 +4,7 @@ description = "Computes the processing speed of a resource."
 
 [[variant]]
   name = "Service Time"
-  description = ""
+  description = "For each \"complete\" event of the resource, the timespan to the \"start\" event is calculated."
 
   quality = 7
 
