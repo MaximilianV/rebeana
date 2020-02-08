@@ -1,4 +1,4 @@
-FROM javert899/pm4py
+FROM maximilianvoelker/pm4py
 
 RUN apt-get update \
     && apt-get -y install --no-install-recommends apt-utils dialog 2>&1 \
