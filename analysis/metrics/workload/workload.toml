@@ -17,3 +17,12 @@ description = "Computes the workload of a resource at event occurence."
     description = "Timewindow that should be used to compute the workload"
     required = false
     default = "12h"
+
+[[variant]]
+  name = "Running"
+  description = "Sums up the number of events associated with the resource for the last x (default 12) hours."
+
+  quality = 7
+
+  [variant.requirements]
+    attribute_keys = []
