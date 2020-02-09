@@ -78,7 +78,7 @@ user_id = "User_3"
 
 ### PROCESSING SPEED ###
 
-proc_speed.execute_variant('Service Time', log, user_id)
+proc_speed.execute_variant('Service Time', log, user_id, max_time=120, min_time=1)
 
 # log["proc_speed"] = log["proc_speed"].astype("Int64")
 
