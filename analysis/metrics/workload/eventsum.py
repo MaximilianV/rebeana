@@ -17,4 +17,6 @@ def compute(log, resource: str, *, column_name: str = "workload", time_window: s
     log.loc[log["org:resource"].isin([resource]), column_name] = log.loc[log["org:resource"].isin([
         resource]), column_name].rolling(time_window).count()
 
+    log.loc[log["org:resource"].isin([resource]), column_name] = log.loc[log["org:resource"].isin([resource]), column_name].shift(1, fill_value=0)
+
     return log
