@@ -9,54 +9,78 @@ from utils.plot import plot_attribute
 from utils.resources import *
 import pandas as pd
 from analysis.metrics.MetricManager import MetricManager
+from evaluation.Correlation import Correlation
+from evaluation.Prediction import Prediction
 
 dataset_path = os.path.join('/workspaces/data/BPIC-17',
                             'BPI_Challenge_2017.parquet')
 
-# log = parquet_importer.apply(dataset_path)
-log = parquet_importer.apply('u5_ps_wl.parquet')
+log = parquet_importer.apply(dataset_path)
+
 
 # Currently we have to use a multiindex due to duplicates in the timestamps (at least pandas says so)
 # log.set_index('time:timestamp', inplace=True, append=True, drop=False)
 # log.set_index('time:timestamp', inplace=True, verify_integrity=True, append=True, drop=False)
-# log.set_index('time:timestamp', inplace=True, drop=False)
-# log.sort_index(inplace=True)
+log.set_index('time:timestamp', inplace=True, drop=False)
+log.sort_index(inplace=True)
 
-
-##################################################################
-
-log.dropna(inplace=True, subset=["proc_speed", "workload"])
-
-print(log.info())
-
-print(log['workload'].corr(log['proc_speed']))
-
-exit()
 ###################################################################
 
 # Filter for Worklow Events only (Offer and Application do not have a duration)
-log = log[log["EventOrigin"] == "Workflow"]
+log = log[(log["EventOrigin"] == "Workflow") & log["lifecycle:transition"].isin(
+        ["suspend", "complete", "start", "resume"])]
 
 # Has 2 resource change in "W_Complete Application"
 # print(log[log["case:concept:name"].isin(["Application_1266995739"])][["Action", "org:resource", "concept:name", "EventOrigin", "EventID", "lifecycle:transition", "OfferID"]])
 
-metrics = MetricManager()
-print(metrics.get_available_metrics())
-
-# print(get_resources(log, True))
-# print(get_most_frequent_resources(log, 5, True))
+# resources = get_resources(log, True)
+# res20 = get_most_frequent_resources(log, 20)
 
 # exit()
 
-# user_id = "User_135"
-user_id = "User_5"
+#####################
+###### METRICS ######
+#####################
 
-########################
-### PROCESSING SPEED ###
-########################
-
+metrics = MetricManager()
 proc_speed = metrics.get_metric('Processing Speed')
+workload = metrics.get_metric('Workload')
+daytime = metrics.get_metric('Daytime')
+
+# user_id = "User_135"
+# user_id = "User_5"
+# user_id = "User_75"
+# user_id = "User_2"
+
+
+# user_id = "User_1"
+# user_id = "User_87"
+user_id = "User_3"
+# user_id = "User_30"
+# user_id = "User_5"
+# user_id = "User_100"
+# user_id = "User_2"
+# user_id = "User_123"
+# user_id = "User_29"
+# user_id = "User_49"
+# user_id = "User_121"
+# user_id = "User_68"
+# user_id = "User_27"
+# user_id = "User_116"
+# user_id = "User_28"
+# user_id = "User_113"
+# user_id = "User_99"
+# user_id = "User_41"
+# user_id = "User_75"
+# user_id = "User_126"
+
+
+
+### PROCESSING SPEED ###
+
 proc_speed.execute_variant('Service Time', log, user_id)
+
+# log["proc_speed"] = log["proc_speed"].astype("Int64")
 
 # plot_attribute(log, "proc_speed", "proc_speed_u135.png")
 
@@ -64,14 +88,56 @@ proc_speed.execute_variant('Service Time', log, user_id)
 #        "case:concept:name", "concept:name", "org:resource", "lifecycle:transition", "proc_speed"]].to_string())
 
 
-################
 ### WORKLOAD ###
-################
 
-workload = metrics.get_metric('Workload')
-workload.execute_variant('Eventsum', log, user_id)
+# workload.execute_variant('Running', log, user_id)
+workload.execute_variant('Eventsum', log, user_id, time_window="1h")
 
-parquet_exporter.apply(
-    log.loc[log["org:resource"].isin([user_id])], 'u5_ps_wl.parquet')
 
+### DAYTIME ###
+
+daytime.execute_variant('Hour', log, user_id)
+
+
+# print(log.loc[log["org:resource"].isin([user_id]) & (log["proc_speed"] > 30)][["time:timestamp", "lifecycle:transition", "daytime", "proc_speed", "workload"]].to_string())
+
+
+# for res, freq in resources.items():
+#     if freq < 10000:
+#         print(res + ":" + "PS...", end="")
+#         proc_speed.execute_variant('Service Time', log, res)
+#         print("WL...", end="")
+#         workload.execute_variant('Eventsum', log, res)
+#         print("DT...")
+#         daytime.execute_variant('Hour', log, res)
+
+# for res in res20:
+#     print(res + ":" + "PS...", end="")
+#     proc_speed.execute_variant('Service Time', log, res)
+#     print("WL...", end="")
+#     workload.execute_variant('Eventsum', log, res)
+#     print("DT...")
+#     daytime.execute_variant('Hour', log, res)
+
+#     predictor = Prediction(res, log=log.loc[log['org:resource'].isin([res])], export_path='evaluation/results/ml/autorun/')
+#     predictor.evaluate(['workload', 'daytime'], 'proc_speed')
+
+predictor = Prediction(user_id, log=log.loc[log['org:resource'].isin([user_id])], export_path='evaluation/results/ml/top20/')
+predictor.evaluate(['workload', 'daytime'], 'proc_speed')
+
+# log.to_parquet(user_id + '_wl_ps_h.parquet', engine='pyarrow')
+
+# print(log.loc[log["org:resource"].isin([user_id])][[
+#        "case:concept:name", "concept:name", "org:resource", "lifecycle:transition", "daytime"]].to_string())
+
+# parquet_exporter.apply(log, 'datasets/' + 'tenthousend' + '.parquet')
+# parquet_exporter.apply(
+#    log.loc[log["org:resource"].isin([user_id])], 'datasets/' + user_id + '.parquet')
+
+
+
+# corr = Correlation(log=log.loc[log["org:resource"].isin([user_id])])
+# print(corr.compute_correlation('workload', 'proc_speed'))
+# corr.show_correlation('workload', 'proc_speed', "BPI17_"  + user_id)
+# corr.show_correlation('daytime', 'proc_speed', "BPI17_"  + user_id)
 
