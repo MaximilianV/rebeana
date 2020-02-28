@@ -5,7 +5,7 @@ def activity_duration(group, column_name):
     group[column_name] = group["time:timestamp"] - group["time:timestamp"].shift(
         periods=1).where(group["lifecycle:transition"].isin(["complete", "suspend"]), np.nan)
 
-    group[column_name] = round(group[column_name].dt.total_seconds() / 60)
+    group[column_name] = round(group[column_name].dt.total_seconds())
 
     return group
 

@@ -24,11 +24,13 @@ log = parquet_importer.apply(dataset_path)
 log.set_index('time:timestamp', inplace=True, drop=False)
 log.sort_index(inplace=True)
 
-###################################################################
+########################################################################################################
 
 # Filter for Worklow Events only (Offer and Application do not have a duration)
 log = log[(log["EventOrigin"] == "Workflow") & log["lifecycle:transition"].isin(
-        ["suspend", "complete", "start", "resume"])]
+    ["suspend", "complete", "start", "resume"])]
+        # ["suspend", "complete", "start", "resume"]) & (log["concept:name"] == 'W_Complete application')]
+    # ["suspend", "complete", "start", "resume"]) & (log["concept:name"] != 'W_Call after offers')]
 
 # Has 2 resource change in "W_Complete Application"
 # print(log[log["case:concept:name"].isin(["Application_1266995739"])][["Action", "org:resource", "concept:name", "EventOrigin", "EventID", "lifecycle:transition", "OfferID"]])
@@ -55,7 +57,7 @@ daytime = metrics.get_metric('Daytime')
 
 # user_id = "User_1"
 # user_id = "User_87"
-user_id = "User_3"
+# user_id = "User_3"
 # user_id = "User_30"
 # user_id = "User_5"
 # user_id = "User_100"
@@ -74,11 +76,9 @@ user_id = "User_3"
 # user_id = "User_75"
 # user_id = "User_126"
 
-
-
 ### PROCESSING SPEED ###
 
-proc_speed.execute_variant('Service Time', log, user_id, max_time=120, min_time=1)
+# proc_speed.execute_variant('Service Time', log, user_id, max_time=7200, min_time=1)
 
 # log["proc_speed"] = log["proc_speed"].astype("Int64")
 
@@ -91,16 +91,18 @@ proc_speed.execute_variant('Service Time', log, user_id, max_time=120, min_time=
 ### WORKLOAD ###
 
 # workload.execute_variant('Running', log, user_id)
-workload.execute_variant('Eventsum', log, user_id, time_window="1h")
+# workload.execute_variant('Eventsum', log, user_id, time_window="30min")
 
 
 ### DAYTIME ###
 
-daytime.execute_variant('Hour', log, user_id)
+# daytime.execute_variant('Hour', log, user_id)
 
 
 # print(log.loc[log["org:resource"].isin([user_id]) & (log["proc_speed"] > 30)][["time:timestamp", "lifecycle:transition", "daytime", "proc_speed", "workload"]].to_string())
 
+res20 = ["User_1", "User_87", "User_3", "User_30", "User_5", "User_100", "User_2", "User_123", "User_29", "User_49",
+             "User_121", "User_68", "User_27", "User_116", "User_28", "User_113", "User_99", "User_41", "User_75", "User_126"]
 
 # for res, freq in resources.items():
 #     if freq < 10000:
@@ -111,21 +113,29 @@ daytime.execute_variant('Hour', log, user_id)
 #         print("DT...")
 #         daytime.execute_variant('Hour', log, res)
 
-# for res in res20:
-#     print(res + ":" + "PS...", end="")
-#     proc_speed.execute_variant('Service Time', log, res)
-#     print("WL...", end="")
-#     workload.execute_variant('Eventsum', log, res)
-#     print("DT...")
-#     daytime.execute_variant('Hour', log, res)
+for res in res20:
+    print(res + ":" + "PS...", end="")
+    proc_speed.execute_variant(
+        'Service Time', log, res, max_time=7200, min_time=1)
+    print("WL...", end="")
+    workload.execute_variant('Eventsum', log, res, time_window="30min")
+    print("DT...")
+    daytime.execute_variant('Hour', log, res)
 
 #     predictor = Prediction(res, log=log.loc[log['org:resource'].isin([res])], export_path='evaluation/results/ml/autorun/')
 #     predictor.evaluate(['workload', 'daytime'], 'proc_speed')
 
-predictor = Prediction(user_id, log=log.loc[log['org:resource'].isin([user_id])], export_path='evaluation/results/ml/top20/')
-predictor.evaluate(['workload', 'daytime'], 'proc_speed')
 
-# log.to_parquet(user_id + '_wl_ps_h.parquet', engine='pyarrow')
+
+# predictor = Prediction(user_id, log=log.loc[log['org:resource'].isin([user_id])], export_path='evaluation/results/case_features/')
+# predictor.evaluate(['workload'], 'proc_speed')
+# predictor.plot_log(['workload'], 'proc_speed')
+# predictor.evaluate(['workload', 'daytime', 'concept:name'], 'proc_speed')
+# predictor.evaluate(['concept:name', 'case:RequestedAmount',
+#                     'workload', 'daytime'], 'proc_speed')
+
+log.loc[log['org:resource'].isin(res20)].to_parquet(
+    'all_wl_ps_dt.parquet', engine='pyarrow')
 
 # print(log.loc[log["org:resource"].isin([user_id])][[
 #        "case:concept:name", "concept:name", "org:resource", "lifecycle:transition", "daytime"]].to_string())
