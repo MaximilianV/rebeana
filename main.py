@@ -21,6 +21,7 @@ dataset_path = os.path.join('/workspaces/data/BPIC-17',
 
 log = parquet_importer.apply(dataset_path)
 
+OUTPUT_PATH = "results"
 
 # Currently we have to use a multiindex due to duplicates in the timestamps (at least pandas says so)
 # log.set_index('time:timestamp', inplace=True, append=True, drop=False)
@@ -35,13 +36,13 @@ log.sort_index(inplace=True)
 log = log[(log["EventOrigin"] == "Workflow") & log["lifecycle:transition"].isin(
     ["suspend", "complete", "start", "resume"])]
 
-# print(log[300:400][["time:timestamp", "case:concept:name", "concept:name", "lifecycle:transition", "org:resource", "daytime", "proc_speed", "workload"]].to_string())
-# exit()
-
-# resources = get_resources(log, True)
 
 
-execution = Configuration('Test', log)
+######################
+####### CONFIG #######
+######################
+
+execution = Configuration('Test', log=log)
 
 # execution.resources = get_most_frequent_resources(execution.log, 20)
 execution.resources = ['User_121']
@@ -60,6 +61,7 @@ execution.metric_configurations = {
     },
     'Processing Speed': {
         'variant': 'Service Time',
+        'column': 'proc_speed',
         'configuration': {
             'max_time': 7200,
             'min_time': 1
@@ -67,24 +69,23 @@ execution.metric_configurations = {
     }
 }
 
+
+######################
+##### EXTRACTION #####
+######################
+
 Extraction.extract_metrics(execution)
-
-print(execution.log[execution.log["org:resource"].isin(execution.resources)][["time:timestamp", "case:concept:name", "concept:name", "lifecycle:transition", "org:resource", "daytime", "proc_speed", "workload"]].to_string())
-
-
-exit()
-
-##### EXTRACTION
-
-# user_id = "User_121"
-
-
-
+# print(execution.log[execution.log["org:resource"].isin(execution.resources)][["time:timestamp", "case:concept:name", "concept:name", "lifecycle:transition", "org:resource", "daytime", "proc_speed", "workload"]].to_string())
 
 
 ######################
 ###### ANALYSIS ######
 ######################
+
+correlation = Correlation(execution)
+correlation.compute_correlation()
+
+print(correlation.result.pearson)
 
 ###### CORRELATION ###
 
