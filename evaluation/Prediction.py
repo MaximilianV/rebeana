@@ -12,11 +12,12 @@ from pm4py.objects.log.importer.parquet import factory as parquet_importer
 # from sklearn.externals.six import StringIO
 # import pydotplus
 
+plt.rc('font', size=14)
 
 class Prediction:
     user_id:str = None
     log = None
-    output_path = "evaluation/results/ml/"
+    output_path = "evaluation/results/"
 
     def __init__(self, user_id, file:str=None, log=None, export_path:str=None):
         if (file is None and log is None) or (file is not None and log is not None):
@@ -27,7 +28,7 @@ class Prediction:
             self.log = log
 
 
-        self.log = self.log[self.log["org:resource"] != 'User_1'].copy()
+        # self.log = self.log[self.log["org:resource"] != 'User_1'].copy()
         # self.log = self.log[self.log["concept:name"] == 'W_Complete application']
 
         self.user_id = user_id
@@ -53,8 +54,8 @@ class Prediction:
         fig, ax = plt.subplots()
         ax.scatter(
             log[['workload']], log[[to_predict]],
-            c=log['concept:name'].apply(lambda x: colors[x.strip()]),
             linewidth=0, marker='.', label='Data points (' + str(log_size) + ')')
+            # c=log['concept:name'].apply(lambda x: colors[x.strip()]),
         # ax[i].plot(log[[feature]], log[[to_predict]], linewidth=0, marker='s', label='Data points (' + str(log_size) + ')')
         ax.set_xlabel('workload')
         ax.set_ylabel(to_predict)
@@ -114,10 +115,13 @@ class Prediction:
 
         # regr = linear_model.LinearRegression()
         # regr = linear_model.LogisticRegression(max_iter=200)
-        regr = DecisionTreeRegressor(max_depth=8)
+        # regr = DecisionTreeRegressor(max_depth=8)
+        regr = DecisionTreeRegressor()
+        regr2 = RandomForestRegressor(max_depth=8)
         # regr = RandomForestRegressor(max_depth=5, random_state=0)
 
         regr = regr.fit(X_train, y_train)
+        regr2 = regr2.fit(X_train, y_train)
 
         ####################
         ### GRAPH EXPORT ###
@@ -128,12 +132,15 @@ class Prediction:
         #                 "tree.pdf")
 
         y_pred = regr.predict(X_test)
+        y_pred2 = regr2.predict(X_test)
 
         ##################
         ### EVALUATION ###
 
         error = 'MSE: %.2f' % mean_squared_error(y_test, y_pred)
+        error2 = 'MSE: %.2f' % mean_squared_error(y_test, y_pred2)
         r2 = 'r2: %.2f' % regr.score(X_test, y_test)
+        r22 = 'r2: %.2f' % regr2.score(X_test, y_test)
         # r2 = 'r2: %.2f' % r2_score(y_test, y_pred)
 
         # print(self.user_id)
@@ -157,9 +164,11 @@ class Prediction:
         fig, ax = plt.subplots(1,len(features), sharey=True, squeeze=False)
         for i, feature in enumerate(features):
             # ax[0, i].plot(X_test[[feature]], y_test, linewidth=0, marker='.', label='Actual', color="green")
-            ax[0, i].plot(X_test[[feature]], y_pred, linewidth=0, marker='.', label='Predicted\n'+r2+'\n'+error, color="red")
+            ax[0, i].plot(X_test[[feature]], y_pred2, linewidth=0, marker='.', label='Random Forest Reg\n'+r22, color="blue")
+            ax[0, i].plot(X_test[[feature]], y_pred, linewidth=0, marker='h',  label='Decision Tree Reg\n'+r2, color="red")
             ax[0, i].set_xlabel(feature)
             ax[0, i].set_ylabel(to_predict)
+            ax[0, i].set_ylim([-50,None])
         ax[0, len(features)-1].legend(facecolor='white')
         fig.savefig(self.output_path + self.user_id +
                     "_wl_decTree8_predOnly.png", dpi=600)
@@ -188,10 +197,10 @@ class Prediction:
 ####### END MANUAL PREDICTION ######
 ####################################
 
-pred = Prediction("res19", file="res20_wl_ps_dt.parquet",
+pred = Prediction("res20", file="all_wl30min_psInSecMax7200_dt.parquet",
                   export_path='evaluation/results/')
 
-pred.plot_log(['workload'], 'proc_speed')
+# pred.plot_log(['workload'], 'proc_speed')
 
 # pred.evaluate(['workload','org:resource'], 'proc_speed')
 
