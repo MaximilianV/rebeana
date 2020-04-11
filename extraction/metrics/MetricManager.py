@@ -3,7 +3,7 @@ import sys
 
 import toml
 
-from analysis.metrics.Metric import Metric
+from extraction.metrics.Metric import Metric
 from utils.utils import name_to_module
 
 
