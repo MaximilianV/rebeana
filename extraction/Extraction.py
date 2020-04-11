@@ -14,10 +14,8 @@ class Extraction:
             metric = metrics.get_metric(metric_name)
 
             print(config.metric_configurations)
-            variant = config.metric_configurations[metric_name]['variant']
-            variant_config = {}
-            if 'configuration' in config.metric_configurations[metric_name]:
-                variant_config = config.metric_configurations[metric_name]['configuration']
+            variant = config.get_variant_for_metric(metric_name)
+            variant_config = config.get_variant_configuration(metric_name)
 
             for resource in config.resources:
                 metric.execute_variant(variant, config.log, resource, **variant_config)
