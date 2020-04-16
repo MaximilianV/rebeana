@@ -35,10 +35,10 @@ class Configuration:
         return self.input_metrics + self.output_metrics
 
     def get_input_columns(self) -> List[str]:
-        return map(self.get_column_for_metric, self.input_metrics)
+        return list(map(self.get_column_for_metric, self.input_metrics))
 
     def get_output_columns(self) -> List[str]:
-        return map(self.get_column_for_metric, self.output_metrics)
+        return list(map(self.get_column_for_metric, self.output_metrics))
 
     # ACCESS METRIC CONFIGURATION
     def get_metric_configuration(self, metric) -> Dict:

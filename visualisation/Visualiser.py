@@ -10,8 +10,8 @@ class Visualiser:
     def boxPlots(configuration: Configuration):
         sb.set()
 
-        in_cols = list(configuration.get_input_columns())
-        out_cols = list(configuration.get_output_columns())
+        in_cols = configuration.get_input_columns()
+        out_cols = configuration.get_output_columns()
 
         fig, axs = plt.subplots(ncols=max(len(in_cols), len(out_cols)), nrows=2, squeeze=False)
         for col, in_col in enumerate(in_cols):
@@ -27,8 +27,8 @@ class Visualiser:
     def scatterPlots(configuration: Configuration):
         sb.set()
 
-        in_cols = list(configuration.get_input_columns())
-        out_cols = list(configuration.get_output_columns())
+        in_cols = configuration.get_input_columns()
+        out_cols = configuration.get_output_columns()
 
         fig, axs = plt.subplots(ncols=len(in_cols), nrows=len(out_cols), sharey=True, squeeze=False)
         for col, in_col in enumerate(in_cols):

@@ -15,7 +15,7 @@ class Correlation:
         self.config = config
         self.result = CorrelationResult(len(self.config.input_metrics), len(self.config.output_metrics))
 
-        all_columns = list(self.config.get_input_columns()) + list(self.config.get_output_columns())
+        all_columns = self.config.get_input_columns() + self.config.get_output_columns()
         self.log = self.config.log[all_columns].copy()
         self.log.dropna(inplace=True)
 
