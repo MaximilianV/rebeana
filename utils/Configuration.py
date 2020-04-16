@@ -12,6 +12,7 @@ class Configuration:
     log: pd.DataFrame
     # Step 2:
     resources: List[str] = []
+    activities: List[str] = []
     input_metrics: List[str] = []
     output_metrics: List[str] = []
     metric_configurations: Dict = {}
@@ -34,6 +35,21 @@ class Configuration:
     def get_all_metrics(self) -> List[str]:
         return self.input_metrics + self.output_metrics
 
+    def __str__(self):
+        return self.id
+
+    def save_configuration(self):
+        f = open("results/" + self.id + ".txt", "w")
+        f.writelines([line + "\n" for line in [
+            "Configuration #" + self.id,
+            "",
+            "Resource:\t" + str(self.resources),
+            "Activities:\t" + str(self.activities)
+        ]])
+        f.close()
+
+
+    # ACCESS METHODS FOR LOG AND COLUMN NAMES
     def get_input_columns(self) -> List[str]:
         return list(map(self.get_column_for_metric, self.input_metrics))
 
