@@ -100,7 +100,7 @@ execution.correlation = correlation.result
 
 regression = Regression(execution)
 
-regression.linear_regression()
+execution.regression = regression.linear_regression()
 
 ###########################
 ###### VISUALISATION ######

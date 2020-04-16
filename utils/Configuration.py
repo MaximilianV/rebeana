@@ -18,7 +18,7 @@ class Configuration:
     metric_configurations: Dict = {}
     # Step 3:
     correlation: CorrelationResult
-    regression: str = None
+    regression: Dict = {}
 
     def __init__(self, name, file: str = None, log: pd.DataFrame = None):
         if (file is None and log is None) or (file is not None and log is not None):
@@ -44,8 +44,18 @@ class Configuration:
             "Configuration #" + self.id,
             "",
             "Resource:\t" + str(self.resources),
-            "Activities:\t" + str(self.activities)
+            "Activities:\t" + str(self.activities),
+            "",
+            "Inputs:\t\t" + str(self.input_metrics),
+            "Outputs:\t" + str(self.output_metrics),
+            ""
         ]])
+        f.write("#############################################################################\n")
+        f.write("##### REGRESSION RESULTS ######\n")
+        for regression in self.regression:
+            f.write("###" + regression + "\n")
+            f.write(str(self.regression[regression].summary()))
+        f.write("#############################################################################\n")
         f.close()
 
 
