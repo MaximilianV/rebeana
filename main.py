@@ -11,6 +11,7 @@ import pandas as pd
 from extraction.Extraction import Extraction
 from visualisation.Visualiser import Visualiser
 from analysis.Correlation import Correlation
+from analysis.Regression import Regression
 from utils.Configuration import Configuration
 
 # from evaluation.Prediction import Prediction
@@ -39,17 +40,21 @@ if not ALREADY_ANALYSED:
         ["suspend", "complete", "start", "resume"])]
 
 
-
 ######################
 ####### CONFIG #######
 ######################
 
 execution = Configuration('Test', log=log)
 
-# execution.resources = get_most_frequent_resources(execution.log, 20)
-execution.resources = ['User_121']
+execution.resources = get_most_frequent_resources(execution.log, 20)
+# execution.resources = ['User_87']
 
-execution.input_metrics = ['Workload', 'Daytime']
+# execution.activities = ['W_Validate application']
+execution.activities = ['W_Complete application']
+# execution.activities = ['W_Call incomplete files']
+
+execution.input_metrics = ['Workload']
+# execution.input_metrics = ['Workload', 'Daytime']
 execution.output_metrics = ['Processing Speed']
 execution.metric_configurations = {
     'Workload': {
@@ -85,11 +90,17 @@ if not ALREADY_ANALYSED:
 ###### ANALYSIS ######
 ######################
 
+# print(log[log['org:resource'].isin(execution.resources)]['concept:name'].value_counts())
+
+
 correlation = Correlation(execution)
 correlation.compute_correlation()
 
 execution.correlation = correlation.result
 
+regression = Regression(execution)
+
+regression.linear_regression()
 
 ###########################
 ###### VISUALISATION ######
@@ -101,13 +112,9 @@ visualiser.boxPlots()
 visualiser.visualiseCorrelation()
 visualiser.scatterPlots()
 
-# corr = Correlation(log=log.loc[log["org:resource"].isin(['User_121'])])
-# corr = Correlation(log=log.loc[log["org:resource"].isin(res20)])
-# print(corr.compute_correlation('workload', 'proc_speed'))
-# print(corr.compute_correlation('daytime', 'proc_speed'))
-# corr.show_correlation('workload', 'proc_speed', "BPI17_"  + user_id)
-# corr.show_correlation('daytime', 'proc_speed', "BPI17_"  + user_id)
+print("##### CURRENT ID: ", execution.id)
 
+execution.save_configuration()
 
 
 
