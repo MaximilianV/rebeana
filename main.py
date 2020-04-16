@@ -9,32 +9,34 @@ from utils.plot import plot_attribute
 from utils.resources import *
 import pandas as pd
 from extraction.Extraction import Extraction
-
-from evaluation.Correlation import Correlation
+from visualisation.Visualiser import Visualiser
+from analysis.Correlation import Correlation
 from utils.Configuration import Configuration
 
 # from evaluation.Prediction import Prediction
 
-dataset_path = os.path.join('/workspaces/data/BPIC-17',
-                            'BPI_Challenge_2017.parquet')
-# dataset_path = os.path.join('all_wl30min_psInSecMax7200_dt.parquet')
+# dataset_path = os.path.join('/workspaces/data/BPIC-17',
+#                             'BPI_Challenge_2017.parquet')
+dataset_path = os.path.join('all_wl30min_psInSecMax7200_dt.parquet')
+
+ALREADY_ANALYSED = True
 
 log = parquet_importer.apply(dataset_path)
 
-OUTPUT_PATH = "results"
+OUTPUT_PATH = "results/"
 
 # Currently we have to use a multiindex due to duplicates in the timestamps (at least pandas says so)
 # log.set_index('time:timestamp', inplace=True, append=True, drop=False)
 # log.set_index('time:timestamp', inplace=True, verify_integrity=True, append=True, drop=False)
-
-log.set_index('time:timestamp', inplace=True, drop=False)
-log.sort_index(inplace=True)
+if not ALREADY_ANALYSED:
+    log.set_index('time:timestamp', inplace=True, drop=False)
+    log.sort_index(inplace=True)
 
 ########################################################################################################
 
 # Filter for Worklow Events only (Offer and Application do not have a duration)
-log = log[(log["EventOrigin"] == "Workflow") & log["lifecycle:transition"].isin(
-    ["suspend", "complete", "start", "resume"])]
+    log = log[(log["EventOrigin"] == "Workflow") & log["lifecycle:transition"].isin(
+        ["suspend", "complete", "start", "resume"])]
 
 
 
@@ -74,8 +76,9 @@ execution.metric_configurations = {
 ##### EXTRACTION #####
 ######################
 
-Extraction.extract_metrics(execution)
-# print(execution.log[execution.log["org:resource"].isin(execution.resources)][["time:timestamp", "case:concept:name", "concept:name", "lifecycle:transition", "org:resource", "daytime", "proc_speed", "workload"]].to_string())
+if not ALREADY_ANALYSED:
+    Extraction.extract_metrics(execution)
+    # print(execution.log[execution.log["org:resource"].isin(execution.resources)][["time:timestamp", "case:concept:name", "concept:name", "lifecycle:transition", "org:resource", "daytime", "proc_speed", "workload"]].to_string())
 
 
 ######################
@@ -85,7 +88,11 @@ Extraction.extract_metrics(execution)
 correlation = Correlation(execution)
 correlation.compute_correlation()
 
-print(correlation.result.pearson)
+execution.correlation = correlation.result
+
+
+Visualiser.visualiseCorrelation(execution)
+Visualiser.scatterPlots(execution)
 
 ###### CORRELATION ###
 
