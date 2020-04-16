@@ -3,6 +3,7 @@ from pm4py.objects.log.importer.parquet import factory as parquet_importer
 import uuid
 import pandas as pd
 from utils.utils import name_to_module
+from analysis.CorrelationResult import CorrelationResult
 
 
 class Configuration:
@@ -15,7 +16,7 @@ class Configuration:
     output_metrics: List[str] = []
     metric_configurations: Dict = {}
     # Step 3:
-    correlation: Dict = None
+    correlation: CorrelationResult
     regression: str = None
 
     def __init__(self, name, file: str = None, log: pd.DataFrame = None):
