@@ -8,6 +8,8 @@ RUN apt-get update \
     && pip --disable-pip-version-check --no-cache-dir install autopep8 \
     && pip --disable-pip-version-check --no-cache-dir install rope \
     && pip --disable-pip-version-check --no-cache-dir install toml \
+    && pip --disable-pip-version-check --no-cache-dir install statsmodels \
+    && pip --disable-pip-version-check --no-cache-dir install seaborn \
     #
     # Clean up
     && apt-get autoremove -y \
