@@ -91,10 +91,15 @@ correlation.compute_correlation()
 execution.correlation = correlation.result
 
 
-Visualiser.visualiseCorrelation(execution)
-Visualiser.scatterPlots(execution)
+###########################
+###### VISUALISATION ######
+###########################
 
-###### CORRELATION ###
+visualiser = Visualiser(execution)
+
+visualiser.boxPlots()
+visualiser.visualiseCorrelation()
+visualiser.scatterPlots()
 
 # corr = Correlation(log=log.loc[log["org:resource"].isin(['User_121'])])
 # corr = Correlation(log=log.loc[log["org:resource"].isin(res20)])

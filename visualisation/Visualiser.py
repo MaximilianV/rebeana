@@ -4,52 +4,47 @@ import matplotlib.pyplot as plt
 
 
 class Visualiser:
+    config: Configuration
 
-
-    @staticmethod
-    def boxPlots(configuration: Configuration):
+    def __init__(self, config: Configuration):
+        self.config = config
+        self.log = config.get_filtered_log()
         sb.set()
 
-        in_cols = configuration.get_input_columns()
-        out_cols = configuration.get_output_columns()
+
+    def boxPlots(self):
+        in_cols = self.config.get_input_columns()
+        out_cols = self.config.get_output_columns()
 
         fig, axs = plt.subplots(ncols=max(len(in_cols), len(out_cols)), nrows=2, squeeze=False)
         for col, in_col in enumerate(in_cols):
-            sb.boxplot(y=configuration.log[in_col], ax=axs[0, col], fliersize=.5)
+            sb.boxplot(y=self.log[in_col], ax=axs[0, col], fliersize=.5)
         for col, out_col in enumerate(out_cols):
-            sb.boxplot(y=configuration.log[out_col], ax=axs[1, col], fliersize=.5)
+            sb.boxplot(y=self.log[out_col], ax=axs[1, col], fliersize=.5)
+        self.save_figure("boxplots")
+        return
 
-        plt.savefig("results/" + configuration.id + "_boxplots.png")
-        plt.clf()
 
-
-    @staticmethod
-    def scatterPlots(configuration: Configuration):
-        sb.set()
-
-        in_cols = configuration.get_input_columns()
-        out_cols = configuration.get_output_columns()
+    def scatterPlots(self):
+        in_cols = self.config.get_input_columns()
+        out_cols = self.config.get_output_columns()
 
         fig, axs = plt.subplots(ncols=len(in_cols), nrows=len(out_cols), sharey=True, squeeze=False)
         for col, in_col in enumerate(in_cols):
             for row, out_col in enumerate(out_cols):
-                sb.scatterplot(x=configuration.log[in_col], y=configuration.log[out_col], ax=axs[row, col])
+                sb.scatterplot(x=self.log[in_col], y=self.log[out_col], ax=axs[row, col])
+        self.save_figure("scattermap")
+        return
 
-        plt.savefig("results/" + configuration.id + "_scattermap.png")
+
+    def visualiseCorrelation(self):
+        pearson_heatmap = sb.heatmap(self.config.correlation.pearson, vmin=-1, vmax=1, annot=True, square=True, linewidths=.5,
+                                     xticklabels=self.config.output_metrics, yticklabels=self.config.input_metrics)
+        self.save_figure("correlation_heatmap")
+        return
+
+
+    def save_figure(self, name):
+        plt.title(self.config.id)
+        plt.savefig("results/" + self.config.id + "_" + name + ".png")
         plt.clf()
-
-
-    @staticmethod
-    def visualiseCorrelation(configuration: Configuration):
-        sb.set()
-
-        pearson_heatmap = sb.heatmap(configuration.correlation.pearson, vmin=-1, vmax=1, annot=True, square=True, linewidths=.5,
-                                     xticklabels=configuration.output_metrics, yticklabels=configuration.input_metrics)
-        plt.savefig("results/" + configuration.id + "_correlation_heatmap.png")
-        plt.clf()
-
-
-    @staticmethod
-    def saveFigure(plot_object, path: str):
-        figure = plot_object.get_figure()
-        figure.savefig("results/" + path)

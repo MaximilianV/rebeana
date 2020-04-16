@@ -14,10 +14,7 @@ class Correlation:
     def __init__(self, config: Configuration):
         self.config = config
         self.result = CorrelationResult(len(self.config.input_metrics), len(self.config.output_metrics))
-
-        all_columns = self.config.get_input_columns() + self.config.get_output_columns()
-        self.log = self.config.log[all_columns].copy()
-        self.log.dropna(inplace=True)
+        self.log = self.config.get_filtered_log()
 
     def compute_correlation(self):
         for input, in_metric in enumerate(self.config.get_input_columns()):

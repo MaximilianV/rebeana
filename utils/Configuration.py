@@ -40,6 +40,18 @@ class Configuration:
     def get_output_columns(self) -> List[str]:
         return list(map(self.get_column_for_metric, self.output_metrics))
 
+    def get_filtered_log(self) -> pd.DataFrame:
+        metrics_columns = self.get_input_columns() + self.get_output_columns()
+        filtered_log = self.log
+        if len(self.activities) > 0:
+            filtered_log = filtered_log[filtered_log["concept:name"].isin(self.activities)]
+        if len(self.resources) > 0:
+            filtered_log = filtered_log[filtered_log["org:resource"].isin(self.resources)]
+        filtered_log = filtered_log[metrics_columns].copy()
+        filtered_log.dropna(inplace=True)
+        return filtered_log
+
+
     # ACCESS METRIC CONFIGURATION
     def get_metric_configuration(self, metric) -> Dict:
         return self.metric_configurations[metric]
