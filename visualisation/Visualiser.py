@@ -8,7 +8,7 @@ class Visualiser:
 
     def __init__(self, config: Configuration):
         self.config = config
-        self.log = config.get_filtered_log()
+        self.log = config.get_filtered_log(include_activities=True)
         sb.set()
 
 
@@ -18,9 +18,11 @@ class Visualiser:
 
         fig, axs = plt.subplots(ncols=max(len(in_cols), len(out_cols)), nrows=2, squeeze=False)
         for col, in_col in enumerate(in_cols):
-            sb.boxplot(y=self.log[in_col], ax=axs[0, col], fliersize=.5)
+            sb.boxplot(y=self.log[in_col], ax=axs[0, col], fliersize=.5, x=self.log["concept:name"])
+            # axs[0, col].set_xticklabels(axs[0, col].get_xticklabels(), rotation=40, ha="right")
         for col, out_col in enumerate(out_cols):
-            sb.boxplot(y=self.log[out_col], ax=axs[1, col], fliersize=.5)
+            sb.boxplot(y=self.log[out_col], ax=axs[1, col], fliersize=.5, x=self.log["concept:name"])
+            # axs[1, col].set_xticklabels(axs[1, col].get_xticklabels(), rotation=40, ha="right")
         self.save_figure("boxplots")
         return
 
@@ -32,7 +34,7 @@ class Visualiser:
         fig, axs = plt.subplots(ncols=len(in_cols), nrows=len(out_cols), sharey=True, squeeze=False)
         for col, in_col in enumerate(in_cols):
             for row, out_col in enumerate(out_cols):
-                sb.scatterplot(x=self.log[in_col], y=self.log[out_col], ax=axs[row, col])
+                sb.scatterplot(x=self.log[in_col], y=self.log[out_col], ax=axs[row, col], hue=self.log["concept:name"])
         self.save_figure("scattermap")
         return
 

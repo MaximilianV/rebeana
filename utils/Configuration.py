@@ -54,7 +54,7 @@ class Configuration:
         f.write("##### REGRESSION RESULTS ######\n")
         for regression in self.regression:
             f.write("###" + regression + "\n")
-            f.write(str(self.regression[regression].summary()))
+            f.write(str(self.regression[regression].summary()) + "\n")
         f.write("#############################################################################\n")
         f.close()
 
@@ -66,13 +66,16 @@ class Configuration:
     def get_output_columns(self) -> List[str]:
         return list(map(self.get_column_for_metric, self.output_metrics))
 
-    def get_filtered_log(self) -> pd.DataFrame:
+    def get_filtered_log(self, include_activities=False) -> pd.DataFrame:
         metrics_columns = self.get_input_columns() + self.get_output_columns()
         filtered_log = self.log
         if len(self.activities) > 0:
             filtered_log = filtered_log[filtered_log["concept:name"].isin(self.activities)]
         if len(self.resources) > 0:
             filtered_log = filtered_log[filtered_log["org:resource"].isin(self.resources)]
+
+        if include_activities:
+            metrics_columns.append("concept:name")
         filtered_log = filtered_log[metrics_columns].copy()
         filtered_log.dropna(inplace=True)
         return filtered_log
