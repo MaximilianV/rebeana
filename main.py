@@ -53,8 +53,8 @@ execution.resources = get_most_frequent_resources(execution.log, 20)
 execution.activities = ['W_Complete application']
 # execution.activities = ['W_Call incomplete files']
 
+# execution.input_metrics = ['Workload', 'Amount', 'Daytime']
 execution.input_metrics = ['Workload']
-# execution.input_metrics = ['Workload', 'Daytime']
 execution.output_metrics = ['Processing Speed']
 execution.metric_configurations = {
     'Workload': {
@@ -73,6 +73,10 @@ execution.metric_configurations = {
             'max_time': 7200,
             'min_time': 1
         }
+    },
+    'Amount': {
+        'column': 'case:RequestedAmount',
+        'is_attribute': True
     }
 }
 

@@ -82,6 +82,9 @@ class Configuration:
     def get_metric_configuration(self, metric) -> Dict:
         return self.metric_configurations[metric]
 
+    def is_metric_attribute(self, metric) -> bool:
+        return ('is_attribute' in self.get_metric_configuration(metric))
+
     def get_column_for_metric(self, metric) -> str:
         if 'column' in self.metric_configurations[metric]:
             return self.metric_configurations[metric]['column']
