@@ -1,5 +1,7 @@
 import statsmodels.api as sm
 from utils.Configuration import Configuration
+from sklearn.preprocessing import PolynomialFeatures
+import pandas as pd
 
 
 class Regression:
@@ -19,7 +21,16 @@ class Regression:
         return results
 
     def perform_regression(self, independent_metrics, dependent_metric):
+        # POLYNOMIAL REGRESSION
+        # polynomial_features= PolynomialFeatures(degree=3)
+        # x = polynomial_features.fit_transform(self.log[independent_metrics])
+        # features = pd.DataFrame(x,
+                                # index=self.log.index,
+                                # columns=polynomial_features.get_feature_names(self.log[independent_metrics].columns))
+        # model = sm.OLS(self.log[dependent_metric], features)
+
         x = sm.add_constant(self.log[independent_metrics])
         model = sm.OLS(self.log[dependent_metric], x)
+
         regression = model.fit()
         return regression
