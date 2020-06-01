@@ -10,6 +10,7 @@ RUN apt-get update \
     && pip --disable-pip-version-check --no-cache-dir install toml \
     && pip --disable-pip-version-check --no-cache-dir install statsmodels \
     && pip --disable-pip-version-check --no-cache-dir install seaborn \
+    && pip --disable-pip-version-check --no-cache-dir install questionary \
     #
     # Clean up
     && apt-get autoremove -y \
