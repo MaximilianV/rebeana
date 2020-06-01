@@ -39,8 +39,8 @@ class MetricManager:
                 raise KeyError(metric_name)
 
             self.metrics[metric_name] = metric
-            print("Successfully imported metric \"" +
-                  metric_name + "\" from directory \"" + dir + "\".")
+            # print("Successfully imported metric \"" +
+            #       metric_name + "\" from directory \"" + dir + "\".")
 
         except FileNotFoundError:
             print("Directory \"" + dir +
@@ -60,6 +60,20 @@ class MetricManager:
 
     def get_available_metrics(self):
         return self.metrics.keys()
+
+    def get_environmental_metrics(self):
+        env_metrics = []
+        for metric, metric_object in self.metrics.items():
+            if (metric_object.is_environmental()):
+                env_metrics.append(metric)
+        return env_metrics
+
+    def get_behavioural_metrics(self):
+        beh_metrics = []
+        for metric, metric_object in self.metrics.items():
+            if (metric_object.is_behavioural()):
+                beh_metrics.append(metric)
+        return beh_metrics
 
     def get_metric(self, metric_name: str) -> Metric:
         try:
