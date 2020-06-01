@@ -50,12 +50,26 @@ class Configuration:
             "Outputs:\t" + str(self.output_metrics),
             ""
         ]])
+        f.write("\n#############################################################################\n")
+        f.write("##### CORRELATION RESULTS ######\n")
+        f.write("IN\t\tOUT\t\tPerson\tp\tSpearman\tp\n")
+        for input, in_metric in enumerate(self.get_input_columns()):
+            for output, out_metric in enumerate(self.get_output_columns()):
+                f.writelines([in_metric, '\t', out_metric, '\t',
+                                str(round(self.correlation.pearson[input][output], 3)), '\t',
+                                str(round(self.correlation.pearson_p[input][output], 3)), '\t',
+                                str(round(self.correlation.spearman[input][output], 3)), '\t',
+                                str(round(self.correlation.spearman_p[input][output], 3)), '\n'])
+        f.write("#############################################################################\n\n\n")
         f.write("#############################################################################\n")
         f.write("##### REGRESSION RESULTS ######\n")
         for regression in self.regression:
             f.write("###" + regression + "\n")
             f.write(str(self.regression[regression].summary()) + "\n")
+        f.write("#############################################################################\n\n\n")
         f.write("#############################################################################\n")
+        f.write("##### CONFIGURATION ######\n")
+        f.write(str(self.metric_configurations))
         f.close()
 
 
