@@ -1,22 +1,15 @@
-from pm4py.objects.log.importer.parquet import factory as parquet_importer
-import questionary
 import glob
-import os
-import sys
 
-import timeit
+import questionary
 
-from pm4py.objects.log.exporter.parquet import factory as parquet_exporter
-
-from extraction.Extraction import Extraction
-from extraction.metrics.MetricManager import MetricManager
-from visualisation.Visualiser import Visualiser
 from analysis.Correlation import Correlation
 from analysis.Regression import Regression
+from extraction.Extraction import Extraction
+from extraction.metrics.MetricManager import MetricManager
+from pm4py.objects.log.importer.parquet import factory as parquet_importer
 from utils.Configuration import Configuration
 from utils.resources import *
-
-
+from visualisation.Visualiser import Visualiser
 
 OUTPUT_PATH = "results/"
 

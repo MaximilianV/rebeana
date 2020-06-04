@@ -39,8 +39,7 @@ class MetricManager:
                 raise KeyError(metric_name)
 
             self.metrics[metric_name] = metric
-            # print("Successfully imported metric \"" +
-            #       metric_name + "\" from directory \"" + dir + "\".")
+
 
         except FileNotFoundError:
             print("Directory \"" + dir +
