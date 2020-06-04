@@ -10,7 +10,7 @@ def activity_duration(group, column_name):
     return group
 
 
-def compute(log, resource: str, *, column_name: str = "proc_speed", max_time: int = None, min_time: int = None):
+def compute(log, resource: str, *, column_name: str = "processing_speed", max_time: int = None, min_time: int = None):
     log.loc[log["org:resource"].isin([resource]), column_name] = np.nan
 
     log.loc[
@@ -22,9 +22,9 @@ def compute(log, resource: str, *, column_name: str = "proc_speed", max_time: in
             ].groupby(["case:concept:name", "concept:name"]).apply(activity_duration, column_name)
 
     if max_time:
-        log.loc[log[column_name] > max_time, column_name] = np.nan
+        log.loc[log[column_name] > int(max_time), column_name] = np.nan
     if min_time:
-        log.loc[log[column_name] < min_time, column_name] = np.nan
+        log.loc[log[column_name] < int(min_time), column_name] = np.nan
 
     log[column_name].fillna(value=np.nan, inplace=True)
 

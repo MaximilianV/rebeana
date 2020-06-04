@@ -1,6 +1,7 @@
 
 name = "Workload"
 description = "Computes the workload of a resource at event occurence."
+classification = ["environmental"]
 
 [[variant]]
   name = "Eventsum"
@@ -19,8 +20,8 @@ description = "Computes the workload of a resource at event occurence."
     default = "12h"
 
 [[variant]]
-  name = "Running"
-  description = "Sums up the number of events associated with the resource for the last x (default 12) hours."
+  name = "Open Cases"
+  description = "Calculated the number of open but not completed cases at a given point in time."
 
   quality = 7
 

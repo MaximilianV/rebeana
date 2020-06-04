@@ -1,6 +1,7 @@
 
 name = "Daytime"
 description = "Classifies the time of day."
+classification = ["environmental"]
 
 [[variant]]
   name = "Classification"
