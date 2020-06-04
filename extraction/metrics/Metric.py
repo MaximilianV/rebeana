@@ -24,8 +24,29 @@ class Metric:
     def get_variants(self) -> []:
         return [variant["name"] for variant in self.get_variants_settings()]
 
+    @decorator.variant_exists
+    def get_variant_description(self, variant_name):
+        for variant in self.get_variants_settings():
+            if (variant["name"] == variant_name):
+                return variant["description"]
+
+    @decorator.variant_exists
+    def get_variant_configuration(self, variant_name):
+        for variant in self.get_variants_settings():
+            if (variant["name"] == variant_name):
+                if ("configuration" in variant):
+                    return variant["configuration"]
+                else:
+                    return None
+
     def has_variant(self, variant_name: str) -> bool:
         return variant_name in self.get_variants()
+
+    def is_environmental(self) -> bool:
+        return "environmental" in self.configuration["classification"]
+
+    def is_behavioural(self) -> bool:
+        return "behavioural" in self.configuration["classification"]
 
     @decorator.variant_exists
     def execute_variant(self, variant_name: str, log, resource: str, **parameters):

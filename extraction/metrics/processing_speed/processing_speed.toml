@@ -1,12 +1,27 @@
 
 name = "Processing Speed"
 description = "Computes the processing speed of a resource."
+classification = ["behavioural"]
 
 [[variant]]
-  name = "Service Time"
-  description = "For each \"complete\" event of the resource, the timespan to the \"start\" event is calculated."
+  name = "Event Subtraction"
+  description = "For each \"complete\" event of the resource, the time difference to the \"start\" event is calculated."
 
   quality = 7
 
   [variant.requirements]
     attribute_keys = []
+
+  [[variant.configuration]]
+    key = "min_time"
+    name = "Minimum Length"
+    description = "Set minimum length of activity execution that is required."
+    required = false
+    default = 1
+
+  [[variant.configuration]]
+    key = "max_time"
+    name = "Maximum Length"
+    description = "Set maximum length of activity execution that should be included."
+    required = false
+    default = 7200

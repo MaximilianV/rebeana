@@ -21,11 +21,10 @@ class Correlation:
             for output, out_metric in enumerate(self.config.get_output_columns()):
                 in_col_np = self.log[in_metric].to_numpy()
                 out_col_np = self.log[out_metric].to_numpy()
+
                 print("Computing correlation between " + in_metric + " and " + out_metric + ".")
+
                 pearson = scipy.stats.pearsonr(in_col_np, out_col_np)
                 spearman = scipy.stats.spearmanr(in_col_np, out_col_np)
-                print("\tPearson\tp")
-                print("\t", round(pearson[0], 3), "\t", round(pearson[1], 3))
-                print("\tSpearman\tp")
-                print("\t", round(spearman[0], 3), "\t", round(spearman[1], 3))
+
                 self.result.add_correlation(input, output, pearson=pearson, spearman=spearman)
