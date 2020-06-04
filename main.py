@@ -1,174 +1,220 @@
+from pm4py.objects.log.importer.parquet import factory as parquet_importer
+import questionary
+import glob
 import os
 import sys
 
 import timeit
 
-from pm4py.objects.log.importer.parquet import factory as parquet_importer
 from pm4py.objects.log.exporter.parquet import factory as parquet_exporter
-from utils.plot import plot_attribute
-from utils.resources import *
-import pandas as pd
+
 from extraction.Extraction import Extraction
+from extraction.metrics.MetricManager import MetricManager
 from visualisation.Visualiser import Visualiser
 from analysis.Correlation import Correlation
 from analysis.Regression import Regression
 from utils.Configuration import Configuration
-
-# from evaluation.Prediction import Prediction
-
-dataset_path = os.path.join('/workspaces/data/BPIC-17',
-                            'BPI_Challenge_2017.parquet')
-# dataset_path = os.path.join('/workspaces/data/BPIC-12',
-                            # 'BPI_Challenge_2012.parquet')
-# dataset_path = os.path.join('all_wl30min_psInSecMax7200_dt.parquet')
-# dataset_path = os.path.join('top20_wl30min_psInSecMax7200_dt_bpi12.parquet')
-
-ALREADY_ANALYSED = False
-
-log = parquet_importer.apply(dataset_path)
+from utils.resources import *
 
 
-# print(log["concept:name"].value_counts())
-# print(get_resources(log, as_dict=True))
-# exit()
 
 OUTPUT_PATH = "results/"
 
-# Currently we have to use a multiindex due to duplicates in the timestamps (at least pandas says so)
-# log.set_index('time:timestamp', inplace=True, append=True, drop=False)
-# log.set_index('time:timestamp', inplace=True, verify_integrity=True, append=True, drop=False)
-if not ALREADY_ANALYSED:
-    log.set_index('time:timestamp', inplace=True, drop=False)
-    log.sort_index(inplace=True)
+def print_step_separator():
+    print("\n")
+
+###############################
+#### STEP 1: GET DATASETS #####
+###############################
+print_step_separator()
+
+f = glob.glob("/workspaces/data/**/*.parquet")
+# f = f + glob.glob("/workspaces/data/**/*.xes")
+# f = f + glob.glob("/workspaces/data/**/*.xml")
+
+dataset_path = questionary.select(
+    'Please select an event log to analyse.',
+    f
+).ask()
 
 
-    # Filter for Worklow Events only (Offer and Application do not have a duration)
-    # BPIC-17
+print("\nLoading Log...")
+log = parquet_importer.apply(dataset_path)
+print("Loading finished.")
+
+log.set_index('time:timestamp', inplace=True, drop=False)
+log.sort_index(inplace=True)
+
+if (dataset_path == "/workspaces/data/BPIC-17/BPI_Challenge_2017.parquet"):
     log = log[(log["EventOrigin"] == "Workflow") & log["lifecycle:transition"].isin(
         ["suspend", "complete", "start", "resume"])]
+if (dataset_path == "/workspaces/data/BPIC-12/BPI_Challenge_2012.parquet"):
+    log = log[log["concept:name"].isin(['W_Completeren aanvraag', 'W_Afhandelen leads', 'W_Nabellen offertes', 'W_Beoordelen fraude', 'W_Valideren aanvraag', 'W_Nabellen incomplete dossiers', 'W_Wijzigen contractgegevens'])]
 
-    # BPIC-12
-    # log = log[log["concept:name"].isin(['W_Completeren aanvraag', 'W_Afhandelen leads', 'W_Nabellen offertes', 'W_Beoordelen fraude', 'W_Valideren aanvraag', 'W_Nabellen incomplete dossiers', 'W_Wijzigen contractgegevens'])]
-# log = log[(log["case:RequestedAmount"] <= 50000)]
-#  & (log["proc_speed"] <= 2000) & (log["workload"] <= 60) & (log["proc_speed"] >= 120)
+experiment = Configuration('Test', log=log)
 
-# log = log[((log["proc_speed"] >= 1000))]
+#################################
+#### STEP 2: SELECT RESOURCE ####
+#################################
+print_step_separator()
 
+single_user = questionary.confirm("Do you want to analyse a specific resource? Otherwise, the 20 most frequent are analysed.").ask()
 
-######################
-####### CONFIG #######
-######################
+if (single_user):
+    users = [questionary.text("Enter resources to analyse:").ask()]
+else:
+    users = get_most_frequent_resources(log, 20)
 
-execution = Configuration('Test', log=log)
+experiment.resources = users
 
-# execution.resources = get_most_frequent_resources(execution.log, 20)
-execution.resources = ['User_9']
-# execution.resources = ['User_9', 'User_132', 'User_89', 'User_139']
+print("Users selected for analysis:")
+print(users)
 
-# BPI 12
-# execution.activities = ['W_Afhandelen leads']
-# execution.activities = ['W_Nabellen offertes']
-# execution.activities = ['W_Nabellen incomplete dossiers']
-# execution.activities = ['W_Completeren aanvraag']
-# execution.activities = ['W_Valideren aanvraag']
-# execution.activities = ['W_Nabellen incomplete dossiers']
+#################################
+#### STEP 2: SELECT ACTIVITY ####
+#################################
+print_step_separator()
 
-# BPI 17
-# execution.activities = ['W_Validate application']
-# execution.activities = ['W_Complete application']
-# execution.activities = ['W_Call incomplete files']
-execution.activities = ['W_Call after offers']
-# execution.activities = ['W_Handle leads']
-# execution.activities = ['W_Call after offers','W_Call incomplete files','W_Complete application']
-
-# execution.input_metrics = ['Workload', 'Amount', 'Daytime']
-execution.input_metrics = ['Workload', 'Daytime']
-execution.output_metrics = ['Processing Speed']
-execution.metric_configurations = {
-    'Workload': {
-        'variant': 'Eventsum',
-        'configuration': {
-            'time_window': '3h'
-        }
-    },
-    'Daytime': {
-        'variant': 'Hour'
-    },
-    'Processing Speed': {
-        'variant': 'Service Time',
-        'column': 'proc_speed',
-        'configuration': {
-            'max_time': 7200,
-            'min_time': 1
-        }
-    },
-    'Amount': {
-        'column': 'case:RequestedAmount',
-        'is_attribute': True
-    }
-}
+single_activity = questionary.confirm("Do you want to analyse a specific activities?").ask()
 
 
+if (single_activity):
+    df_list_of_activities = log["concept:name"].value_counts()
+    list_of_activities = []
+    for index, value in df_list_of_activities.items():
+        list_of_activities.append(f"{index} ({value})")
+    raw_activities = questionary.checkbox(
+        "Select activities to analyse:",
+        list_of_activities
+    ).ask()
 
+    activities = []
+    for activity in raw_activities:
+        activities.append(activity.split(" (")[0])
+
+    print("Activities selected for analysis:")
+    print(activities)
+    experiment.activities = activities
+
+
+#################################
+#### STEP 3: SELECT METRICS #####
+#################################
+print_step_separator()
+
+print("Loading metrics...")
+metricManager = MetricManager()
+print("Loading finished...")
+
+print_step_separator()
+
+av_env_metrics = metricManager.get_environmental_metrics()
+av_beh_metrics = metricManager.get_behavioural_metrics()
+
+env_metrics = questionary.checkbox(
+    "Select the environmental metrics:",
+    av_env_metrics
+).ask()
+
+experiment.input_metrics = env_metrics
+print_step_separator()
+
+beh_metrics = questionary.checkbox(
+    "Select the behavioural metrics:",
+    av_beh_metrics
+).ask()
+
+experiment.output_metrics = beh_metrics
+
+print_step_separator()
+print("Configure metrics:")
+
+for metric in env_metrics + beh_metrics:
+    metric_config = dict()
+    metric_object = metricManager.get_metric(metric)
+    av_variants = metric_object.get_variants()
+    av_variant = questionary.select(
+        f"Select a variant for metric \"{metric}\"",
+        av_variants
+    ).ask()
+    metric_config["variant"] = av_variant
+
+    configuration = metric_object.get_variant_configuration(av_variant)
+    if (not configuration):
+        print("There is nothing to configure for this variant.")
+    else:
+        metric_config["configuration"] = dict()
+        for config in configuration:
+            config_value = questionary.text(
+                f"Provide a value for the {config['name']} (default: {config['default']}).\n{config['description']}\nLeave empty for default:"
+            ).ask()
+            if (config_value == ""):
+                config_value = config["default"]
+            metric_config["configuration"][config["key"]] = config_value
+            print(f"Set {config['name']} to {config_value}.")
+
+    experiment.metric_configurations[metric] = metric_config
+
+    print_step_separator()
+
+# print(experiment.metric_configurations)
 
 ######################
 ##### EXTRACTION #####
 ######################
 
-if not ALREADY_ANALYSED:
-    Extraction.extract_metrics(execution)
-    # print(execution.log[execution.log["org:resource"].isin(execution.resources)][["time:timestamp", "case:concept:name", "concept:name", "lifecycle:transition", "org:resource", "daytime", "proc_speed", "workload"]].to_string())
+print("Extracting metrics...")
 
-# print(log[log['org:resource'].isin(execution.resources)]['concept:name'].value_counts())
+Extraction.extract_metrics(experiment)
+
+print("Finished extraction.")
 
 ######################
 ###### ANALYSIS ######
 ######################
+print_step_separator()
 
 # CORRELATION
-correlation = Correlation(execution)
+print("Computing correlation...")
+
+correlation = Correlation(experiment)
 correlation.compute_correlation()
-execution.correlation = correlation.result
+experiment.correlation = correlation.result
+
+print("Finished correlation analysis.")
+
 
 # REGRESSION
-regression = Regression(execution)
-execution.regression = regression.linear_regression()
+print("Computing regression...")
+
+regression = Regression(experiment)
+experiment.regression = regression.linear_regression()
+
+print("Finished regression analysis.")
 
 ###########################
 ###### VISUALISATION ######
 ###########################
+print_step_separator()
 
-visualiser = Visualiser(execution)
+print("Starting visualisation...")
+
+visualiser = Visualiser(experiment)
 
 visualiser.boxPlots()
 visualiser.visualiseCorrelation()
 visualiser.scatterPlots()
 
+print("Finished visualisation.")
+
 
 #################
 ###### SAVE #####
 #################
+print_step_separator()
 
-print("##### CURRENT ID: ", execution.id)
-execution.save_configuration()
+experiment.save_configuration()
 
-
-
-
-
-# predictor = Prediction(user_id, log=log.loc[log['org:resource'].isin([user_id])], export_path='evaluation/results/case_features/')
-# predictor.evaluate(['workload'], 'proc_speed')
-# predictor.plot_log(['workload'], 'proc_speed')
-# predictor.evaluate(['workload', 'daytime', 'concept:name'], 'proc_speed')
-# predictor.evaluate(['concept:name', 'case:RequestedAmount',
-#                     'workload', 'daytime'], 'proc_speed')
-
-# log.loc[log['org:resource'].isin(res20)].to_parquet(
-#     'all_wl_ps_dt.parquet', engine='pyarrow')
-
-
-# parquet_exporter.apply(log, 'datasets/' + 'tenthousend' + '.parquet')
-# parquet_exporter.apply(
-#    log.loc[log["org:resource"].isin([user_id])], 'datasets/' + user_id + '.parquet')
-
-
+print("Your experiment's results are ready!")
+print("Please refer to the following experiment ID:")
+print(experiment.id)
